@@ -16,7 +16,7 @@ def train_linear_classifier(X, T, alpha=0.01, max_iter=1000, tol=1e-5):
         G = sigmoid_function(Z)
         E = G - T
         y_pred = np.argmax(G, axis=1)
-        mse = np.mean(np.sum(E**2, axis=1))
+        mse = np.mean(np.sum(E**2, axis=1)) ##Burde sjekke om denne er riktig
         mse_history.append(mse)
         y_true = np.argmax(T, axis=1)
         error_rate = np.sum(y_true != y_pred) / len(y_true)
