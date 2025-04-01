@@ -5,7 +5,7 @@ def get_confusion_matrix(y_true, y_pred, num_classes = 3):
     conf_matrix = np.zeros((num_classes, num_classes))
 
     for pred, true in zip(y_pred, y_true):
-        conf_matrix[true, pred] += 1
+        conf_matrix[int(true) -1, int(pred) -1] += 1
 
     return conf_matrix
 

@@ -1,11 +1,12 @@
 import numpy as np
+from confusion_matrix import get_confusion_matrix
 
 def sigmoid_function(z):
     return 1/(1+np.exp(-z))
 
-def get_MSE(y_true, y_pred):
-    error = y_pred - y_true
-    return np.sum(np.matmul(error.T, error))/2
+# def get_MSE(y_true, y_pred):
+#     error = y_pred - y_true
+#     return 1/2*np.sum(np.matmul(error.T, error))
 
 def get_error_rate(y_true, y_pred):
     return np.sum(y_true != y_pred) / len(y_true)
@@ -13,42 +14,44 @@ def get_error_rate(y_true, y_pred):
 def compute_accuracy(y_true, y_pred):
     return np.mean(y_true == y_pred)
 
-def train_linear_classifier(X, T, alpha=0.01, max_iter=1000, tol=1e-5):
+def train_linear_classifier(X, labels, alpha=0.01, max_iter=1000):
     N, D = X.shape
-    C = T.shape[1]
-    W = np.zeros((C, D))
+    X_aug = np.hstack([X, np.ones((N, 1))])  # (N, D+1)
+    W = np.zeros((3, D+1))
     mse_history = []
     error_rates = []
     confusion_matrices = []
     train_accuracies = []
+    t_k = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
 
     for epoch in range(max_iter):
-        Z = X @ W.T
+        Z = W @ X_aug.T
         G = sigmoid_function(Z)
-        y_pred = np.argmax(G, axis=1)
-        mse = get_MSE(G, T)
-        mse_history.append(mse)
-        y_true = np.argmax(T, axis=1)
+        y_pred = np.argmax(G, axis=0)
+        y_true = labels
+        y_true = np.argmax(y_true, axis=1)  # Convert one-hot to label indices
         error_rate = np.sum(y_true != y_pred) / len(y_true)
         error_rates.append(error_rate)
         accuracy = compute_accuracy(y_true, y_pred)
         train_accuracies.append(accuracy)
-        
+        cm = get_confusion_matrix(y_true, y_pred)
+        confusion_matrices.append(cm)
+        mse = 0
+        grad_MSE = np.zeros((3, X_aug.shape[1]))
+
         #Updating the weights
-        grad_g_MSE = G - T
-        grad_z_g = G * (1-G)
-        grad_W_z = []
-        grad_W_z = np.array([x.T for x in X])
-        grad_W_MSE = np.zeros((C, D))
-        for c in range(C):
-            for d in range(D):
-                grad_W_MSE[c, d] = np.sum(grad_g_MSE[:, c] * grad_z_g[:, c] * grad_W_z[:, d])
-        W -= alpha*grad_W_MSE
-        
-    return W, mse_history, error_rates, train_accuracies
+        for i in range(G.shape[1]):
+            grad_G_MSE = G[:, i] - t_k[:, int(y_true[i])]
+            grad_MSE += np.dot((grad_G_MSE*G[:, i]*(1-G[:, i])).reshape(3, 1), X_aug.T[:, i].reshape(1, 5))
+            mse += np.dot(grad_G_MSE.T, grad_G_MSE)
+
+        mse_history.append(mse/2)
+        W -= alpha*grad_MSE
+
+    return W, mse_history, error_rates, train_accuracies, confusion_matrices
 
 def predict(X, W):
-    lin_model = X @ W.T
-    G = sigmoid_function(lin_model)
-    preds = np.argmax(G, axis=1)
+    X_aug = np.hstack([X, np.ones((X.shape[0], 1))])
+    lin_model = np.dot(W, X_aug.T)
+    preds = np.argmax(lin_model, axis=0)
     return preds
