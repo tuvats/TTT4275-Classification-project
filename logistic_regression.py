@@ -42,7 +42,7 @@ def train_linear_classifier(X, labels, alpha=0.01, max_iter=1000):
         #Updating the weights
         for i in range(G.shape[1]):
             grad_G_MSE = G[:, i] - t_k[:, int(y_true[i])]
-            grad_MSE += np.dot((grad_G_MSE*G[:, i]*(1-G[:, i])).reshape(3, 1), X_aug.T[:, i].reshape(1, 5))
+            grad_MSE += np.dot((grad_G_MSE*G[:, i]*(1-G[:, i])).reshape(3, 1), X_aug.T[:, i].reshape(1, D+1))
             mse += np.dot(grad_G_MSE.T, grad_G_MSE)
 
         mse_history.append(mse/2)
