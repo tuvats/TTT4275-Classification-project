@@ -62,6 +62,10 @@ def clustering(data, labels, n_clusters=64):
     return all_centers, all_labels
 
 
+import time
+import numpy as np
+from scipy.spatial.distance import cdist
+
 def k_NN_classifier(train_data, train_labels, test_data, test_labels, k=7):
     start = time.time()
 
@@ -80,34 +84,17 @@ def k_NN_classifier(train_data, train_labels, test_data, test_labels, k=7):
         majority_label = values[np.argmax(counts)]
         # np.argmax(counts) returns index of largest count, and values[] gives label with largest count
         predicted_labels.append(majority_label)
-    
+
     predicted_labels = np.array(predicted_labels)
 
     conf_matrix = np.zeros((10, 10), dtype=int)
-    correct_pred = []
-    correct_labels = []
-    wrong_pred = []
-    wrong_labels = []
+    for true_label, pred_label in zip(test_labels, predicted_labels):
+        conf_matrix[int(true_label), int(pred_label)] += 1
 
-    for i, (true_label, pred_label) in enumerate(zip(test_labels, predicted_labels)):
-        true_label = int(true_label)
-        pred_label = int(pred_label)
-
-        conf_matrix[true_label, pred_label] += 1
-
-        if true_label == pred_label:
-            correct_pred.append(test_data[i])
-            correct_labels.append(true_label)
-        else:
-            wrong_pred.append(test_data[i])
-            wrong_labels.append((true_label, pred_label))
-
-    num_wrong = len(wrong_pred)
-    num_total = len(test_labels)
-    error_rate = (num_wrong/num_total)*100
+    error_rate = 100 * np.mean(predicted_labels != test_labels)
 
     end = time.time()
     print(f"Runtime: {end - start:.2f} seconds")
     print(f"Error Rate: {error_rate:.2f}%")
 
-    return conf_matrix, correct_pred, wrong_pred, correct_labels, wrong_labels
+    return conf_matrix
