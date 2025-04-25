@@ -62,10 +62,6 @@ def clustering(data, labels, n_clusters=64):
     return all_centers, all_labels
 
 
-import time
-import numpy as np
-from scipy.spatial.distance import cdist
-
 def k_NN_classifier(train_data, train_labels, test_data, test_labels, k=7):
     start = time.time()
 
