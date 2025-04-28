@@ -4,10 +4,6 @@ from confusion_matrix import get_confusion_matrix
 def sigmoid_function(z):
     return 1/(1+np.exp(-z))
 
-# def get_MSE(y_true, y_pred):
-#     error = y_pred - y_true
-#     return 1/2*np.sum(np.matmul(error.T, error))
-
 def get_error_rate(y_true, y_pred):
     return np.sum(y_true != y_pred) / len(y_true)
 
